@@ -1,9 +1,17 @@
 package com.darkbit.security.config;
 
-import com.darkbit.security.config.SecurityConfigProperties;
+import com.darkbit.security.application.port.RolePort;
+import com.darkbit.security.application.port.UserPort;
+import com.darkbit.security.application.service.AuthService;
+import com.darkbit.security.application.service.JwtService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Configuración automática de la librería Security Darkbit.
@@ -13,17 +21,25 @@ import org.springframework.context.annotation.ComponentScan;
  * @version 1.0.0
  */
 @AutoConfiguration
-@ComponentScan(basePackages = "com.darkbit.security")
+@EnableConfigurationProperties(SecurityConfigProperties.class)
 public class SecurityDarkbitAutoConfiguration {
 
-    /**
-     * Bean de ejemplo que se registra automáticamente.
-     * Puedes inyectar este bean en tus servicios.
-     */
     @Bean
-    public SecurityConfigProperties securityConfigProperties() {
-        return new SecurityConfigProperties();
+    @ConditionalOnMissingBean
+    public JwtService jwtService(
+            @Value("${jwt.secret:default_jwt_secret}") String secret,
+            @Value("${jwt.expiration:259200000}") long expirationMillis) {
+        return new JwtService(secret, expirationMillis);
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean({UserPort.class, RolePort.class, PasswordEncoder.class, AuthenticationManager.class})
+    public AuthService authService(UserPort userPort,
+                                   RolePort rolePort,
+                                   PasswordEncoder passwordEncoder,
+                                   JwtService jwtService,
+                                   AuthenticationManager authenticationManager) {
+        return new AuthService(userPort, rolePort, passwordEncoder, jwtService, authenticationManager);
+    }
 }
-
