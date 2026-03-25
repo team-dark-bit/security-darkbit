@@ -8,7 +8,7 @@
 		<version>3.5.12-SNAPSHOT</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.darkbit</groupId>
+	<groupId>com.github.team-dark-bit</groupId>
 	<artifactId>security-darkbit</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
